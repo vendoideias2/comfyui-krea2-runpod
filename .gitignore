@@ -1,0 +1,4 @@
+.env
+*.env
+teste/*.png
+.watch*.log
