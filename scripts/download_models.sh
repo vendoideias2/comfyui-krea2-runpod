@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Baixa a Tríade Base do Krea 2 no Network Volume.
+# Baixa a Tríade Base do Krea 2 no Network Volume (plano A usa imagem assada).
 # Roda UMA vez, dentro de um Pod com o volume montado.
 set -euo pipefail
-M=/workspace/models
+M=/comfyui/models
 B=https://huggingface.co/Comfy-Org/Krea-2/resolve/main
 mkdir -p $M/diffusion_models $M/text_encoders $M/vae $M/loras $M/input $M/output
 
@@ -22,4 +22,4 @@ get https://huggingface.co/conradlocke/krea2-identity-edit/resolve/main/krea2_id
 
 echo; echo "=== CONTEUDO DO VOLUME ==="
 du -sh $M/diffusion_models/* $M/text_encoders/* $M/vae/* 2>/dev/null
-df -h /workspace | tail -1
+df -h /comfyui | tail -1
