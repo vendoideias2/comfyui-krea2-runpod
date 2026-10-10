@@ -39,6 +39,7 @@ RUN set -eux; \
 # O RunPod GitHub integration exige src/handler.py e src/start.sh.
 # A imagem base ja traz /handler.py e CMD /start.sh — aqui a gente reforca
 # com os arquivos do repo, identicos aos upstream.
+COPY requirements.txt ./
 COPY src/handler.py src/start.sh src/network_volume.py /
 
 HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
