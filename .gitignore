@@ -4,3 +4,7 @@ teste/*.png
 .watch*.log
 __pycache__/
 *.pyc
+testar_endpoint.py
+handler_simples.py
+deploy_serverless.py
+workflows/Krea2_*.json
