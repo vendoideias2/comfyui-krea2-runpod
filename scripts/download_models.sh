@@ -14,6 +14,12 @@ get $B/diffusion_models/krea2_turbo_fp8_scaled.safetensors $M/diffusion_models/k
 get $B/text_encoders/qwen3vl_4b_fp8_scaled.safetensors   $M/text_encoders/qwen3vl_4b_fp8_scaled.safetensors
 get $B/vae/qwen_image_vae.safetensors                     $M/vae/qwen_image_vae.safetensors
 
+# LoRA de EDICAO — OBRIGATORIO. Sem ele a saida sai em mosaico/blocos.
+# Krea 2 Identity Edit v1.2 (variante r128). Sem ele nao ha try-on.
+mkdir -p $M/loras
+get https://huggingface.co/conradlocke/krea2-identity-edit/resolve/main/krea2_identity_edit_v1_2_r128.safetensors \
+    $M/loras/krea2_identity_edit_v1_2_r128.safetensors
+
 echo; echo "=== CONTEUDO DO VOLUME ==="
 du -sh $M/diffusion_models/* $M/text_encoders/* $M/vae/* 2>/dev/null
 df -h /workspace | tail -1

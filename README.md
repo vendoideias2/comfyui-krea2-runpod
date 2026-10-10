@@ -3,6 +3,50 @@
 Try-on de roupa (foto da peça + foto do modelo) em API, com **nós 100% nativos do ComfyUI** —
 zero custom nodes. O nó responsável é o `TextEncodeKrea2`, nativo do ComfyUI.
 
+# 🎯 TRY-ON DO FLOR DE SEDA — `KREA2_TRYON_FLOR_DE_SEDA.json`
+
+**16 nós, 100% nativos do ComfyUI. Zero custom nodes. Zero pacote.**
+
+```
+UNETLoader (krea2_turbo_fp8_scaled)
+  └─ LoraLoaderModelOnly  krea2_identity_edit_v1_2_r128  @ 1.0
+       └─ Krea2EditModelPatch  [ref_boost 4.0 | ref_boost_a 1.0 | fit]
+            ├─ ← VAEEncode (MODELO)     ← imagem original
+            ├─ ← VAEEncode (PECA_SEDA)  ← imagem original
+            └─ → model → KSampler → VAEDecode → SaveImage
+
+CLIPLoader (qwen3vl_4b_fp8_scaled, type=krea2)
+  ├─ Krea2EditGroundedEncode  (instrução)  ← as 2 imagens
+  └─ Krea2EditGroundedEncode  ("")         ← negative
+
+VAEEncode (MODELO) → KSampler.latent_image
+KSampler [10 steps | CFG 1.0 | euler/simple | denoise 1.0]
+```
+
+| Nó | Papel |
+|---|---|
+| `Krea2EditModelPatch` | injeta o patch de edição no MODEL + os 2 latentes de referência |
+| `Krea2EditGroundedEncode` | codifica a instrução **junto com as 2 imagens** (grounded) |
+
+## 🚨 O LoRA de edição é obrigatório
+
+`krea2_identity_edit_v1_2_r128.safetensors` — sem ele a saída sai **em mosaico/blocos**
+(o modelo base lê os tokens de referência como conteúdo e quebra a imagem).
+Não é bug de prompt. O `scripts/download_models.sh` já baixa.
+
+## Ajustes
+
+| Onde | O quê |
+|---|---|
+| `LoadImage` 4 | **MODELO.jpg** — a pessoa. Vira o `latent_image` do KSampler. |
+| `LoadImage` 5 | **PECA_SEDA.jpg** — a peça. Vai como referência. |
+| `Krea2EditModelPatch[0]` | `ref_boost` = 4.0. **Sobe se a peça não persistir.** |
+| `KSampler` | 10 passos, CFG 1.0, euler/simple. Não mexa no CFG. |
+
+Se a peça não aparecer: sobe `ref_boost` para 6. Se a pessoa mudar: desce para 3.
+
+---
+
 ## Arquitetura
 
 Modelos num **Network Volume** (build da imagem leva ~2 min, sem risco de estourar o
