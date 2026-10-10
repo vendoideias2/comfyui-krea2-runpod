@@ -1,7 +1,10 @@
 # Imagem COM modelos assados — dispensa Pod e Network Volume.
 # Derivatives de runpod/worker-comfyui: os modelos vao em /comfyui/models (NÃO /workspace).
-# Os 4 arquivos baixam em PARALELO: ~19,5 GB é o gargalo do build.
-FROM runpod/worker-comfyui:latest
+# Os 4 arquivos baixam em PARALELO: ~19,5 GB e o gargalo do build.
+# ATENCAO: a imagem runpod/worker-comfyui NAO tem tag "latest".
+# Tags existentes sao versionadas (5.x.y-base, 5.x.y-flux1-dev, ...).
+# "base" = ComfyUI limpo, sem modelo pre-baixado. 14,7 GB.
+FROM runpod/worker-comfyui:5.10.0-base
 
 ENV HF_HUB_ENABLE_HF_TRANSFER=1 \
     COMFY_POLLING_INTERVAL_MS=500 \
