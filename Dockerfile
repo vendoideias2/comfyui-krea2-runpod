@@ -45,6 +45,13 @@ COPY --from=models /models /comfyui/models
 
 RUN mkdir -p /comfyui/models/input /comfyui/models/output
 
+# ---- custom node dos nos Krea2Edit* ----
+# Krea2EditModelPatch e Krea2EditGroundedEncode NAO estao no ComfyUI core.
+# Pack: https://github.com/lbouaraba/comfyui-krea2edit  (696 stars)
+COPY scripts/instalar_krea2edit.py /tmp/instalar_krea2edit.py
+RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
+ && test -f /comfyui/custom_nodes/comfyui-krea2edit/__init__.py
+
 # O RunPod GitHub integration exige src/handler.py e src/start.sh.
 COPY requirements.txt ./
 COPY src/handler.py src/start.sh src/network_volume.py /
