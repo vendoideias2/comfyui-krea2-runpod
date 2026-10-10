@@ -2,3 +2,5 @@
 *.env
 teste/*.png
 .watch*.log
+__pycache__/
+*.pyc
