@@ -36,6 +36,45 @@ RUN set -eux; \
     test -s /models/loras/krea2_identity_edit_v1_2_r128.safetensors
 
 # ------------------------------------------------------------------
+# GERADOR DE ANCORAS — camada nova, downloads em paralelo (~9,4 GB)
+#
+# POR QUE: o try-on acima VESTE roupa. O Krea2EditModelPatch tem
+# source_latent e target_latent apontando para a mesma imagem A, entao o
+# workflow sempre devolve a pessoa da imagem A — nao existe parametro que
+# troque a identidade. Foi por isso que a Mariana saia parecendo com a
+# Helena mesmo com ref_boost alto.
+#
+# O gerador de ancoras e txt2img + PuLID: o rosto vem da referencia facial
+# (trancado pelo PuLID) e o restante — corpo, cabelo, cenario — vem do
+# prompt. E a unica via que produz uma modelo diferente das outras.
+#
+# IMPORTANTE: esta e uma CAMADA SEPARADA de proposito. Mexer no RUN acima
+# invalidaria o cache e faria os 19,5 GB do try-on baixarem de novo. Como
+# e uma instrucao nova, so estes 9,4 GB entram.
+#
+# O clip bf16 e novo: o gerador usa CLIPLoader type=qwen2vl com
+# qwen3vl_4b_bf16, enquanto o try-on usa type=krea2 com o fp8_scaled.
+# Sao arquivos diferentes — renomear nao resolve.
+#
+# NOTA: os LoRAs do CivitAI (fashion_pose, krea2_pro_realism) ficam de
+# fora de proposito — este repositorio e PUBLICO e botar um token de API
+# no Dockerfile vazaria a credencial. Sem eles a textura fica menos
+# "lookbook", mas o gerador funciona.
+# ------------------------------------------------------------------
+ENV P=https://huggingface.co/guozinan/PuLID/resolve/main
+
+RUN mkdir -p /models/pulid \
+ && set -eux; \
+    wget -q -c -O /models/text_encoders/qwen3vl_4b_bf16.safetensors \
+         $B/text_encoders/qwen3vl_4b_bf16.safetensors & \
+    wget -q -c -O /models/pulid/pulid_flux_v0.9.1.safetensors \
+         $P/pulid_flux_v0.9.1.safetensors & \
+    wait; \
+    du -sh /models/*/; \
+    test -s /models/text_encoders/qwen3vl_4b_bf16.safetensors; \
+    test -s /models/pulid/pulid_flux_v0.9.1.safetensors
+
+# ------------------------------------------------------------------
 FROM runpod/worker-comfyui:5.10.0-base
 
 ENV COMFY_POLLING_INTERVAL_MS=500 \
@@ -52,6 +91,15 @@ COPY scripts/instalar_krea2edit.py /tmp/instalar_krea2edit.py
 RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
  && test -f /comfyui/custom_nodes/comfyui-krea2edit/__init__.py
 
+# ---- custom node do PuLID (gerador de ancoras) ----
+# Repositorio oficial no GitHub foi removido (404); o mirror esta no HF.
+# O instalador tambem normaliza as barras invertidas do zip, senao o
+# diretorio eva_clip/ fica com o nome literal e o import quebra.
+COPY scripts/instalar_pulid.py /tmp/instalar_pulid.py
+RUN python3 /tmp/instalar_pulid.py && rm /tmp/instalar_pulid.py \
+ && test -f /comfyui/custom_nodes/ComfyUI-PuLID-Flux/__init__.py \
+ && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip
+
 # O RunPod GitHub integration exige src/handler.py e src/start.sh.
 COPY requirements.txt ./
 COPY src/handler.py src/start.sh src/network_volume.py /
@@ -61,4 +109,7 @@ HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
    && test -s /comfyui/models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors \
    && test -s /comfyui/models/vae/qwen_image_vae.safetensors \
    && test -s /comfyui/models/loras/krea2_identity_edit_v1_2_r128.safetensors \
-   && echo "krea2 pronto" || exit 1
+   && test -s /comfyui/models/text_encoders/qwen3vl_4b_bf16.safetensors \
+   && test -s /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
+   && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip \
+   && echo "krea2 + gerador de ancoras pronto" || exit 1
