@@ -3,3 +3,7 @@
 .env
 __pycache__/
 *.pyc
+resultado.png
+teste/
+ui_para_api.py
+PLANO_A.md

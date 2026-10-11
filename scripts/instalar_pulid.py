@@ -87,11 +87,29 @@ NOS_ESPERADOS = (
 )
 
 
+def _versao(modulo):
+    """Versao instalada de um pacote, ou None se ausente."""
+    try:
+        from importlib.metadata import version
+        return version(modulo)
+    except Exception:
+        return None
+
+
 def instalar_dependencias():
     """
     Instala insightface/facexlib. Falha ruidosa se nao conseguir: mais
     seguro o build quebrar aqui do que subir imagem sem os nos.
+
+    REGRA CRITICA: o pip nao pode rebaixar numpy nem onnxruntime. O
+    insightface declara ambos como dependencia, e um rebaixamento
+    silencioso quebra o torch -- o que derrubaria o try-on, que hoje
+    funciona. A versao de numpy antes e depois e comparada, e qualquer
+    mudanca aborta o build.
     """
+    antes = {p: _versao(p) for p in ("numpy", "onnxruntime")}
+    print(f"  numpy antes: {antes['numpy']} | onnxruntime antes: {antes['onnxruntime']}")
+
     print("instalando dependencias do PuLID (pode demorar alguns minutos)")
     cmd = [sys.executable, "-m", "pip", "install", "--no-cache-dir", *DEPENDENCIAS]
     proc = subprocess.run(cmd, capture_output=True, text=True)
@@ -101,7 +119,25 @@ def instalar_dependencias():
             f"comando: {' '.join(cmd)}\n"
             f"saida:\n{proc.stdout[-2000:]}\n{proc.stderr[-2000:]}"
         )
-    print("  ok: dependencias instaladas")
+
+    depois = {p: _versao(p) for p in ("numpy", "onnxruntime")}
+    print(f"  numpy depois: {depois['numpy']} | onnxruntime depois: {depois['onnxruntime']}")
+
+    if antes["numpy"] and depois["numpy"] and antes["numpy"] != depois["numpy"]:
+        raise SystemExit(
+            f"FALHOU: o pip alterou o numpy ({antes['numpy']} -> {depois['numpy']}).\n"
+            "Isso quebra o torch e derrubaria o try-on, que hoje funciona.\n"
+            "Fixe a versao do numpy no Dockerfile antes de seguir."
+        )
+
+    # Prova final de que o torch continua utilizavel. Mais barato que
+    # descobrir no primeiro job que a imagem subiu quebrada.
+    check = subprocess.run(
+        [sys.executable, "-c", "import torch; print(torch.__version__)"],
+        capture_output=True, text=True)
+    if check.returncode != 0:
+        raise SystemExit(f"FALHOU: o torch nao importa mais:\n{check.stderr[-1500:]}")
+    print(f"  ok: dependencias instaladas, torch {check.stdout.strip()} intacto")
 
 
 def testar_import_real(destino: str):

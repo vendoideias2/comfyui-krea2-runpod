@@ -95,12 +95,17 @@ RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
 # pulidflux.py carrega FaceAnalysis(name="antelopev2"), que BAIXA do
 # GitHub no primeiro uso. Baixar no build em vez do job: se a URL cair,
 # o build quebra aqui (barato) e nao no meio de um job de geracao.
+#
+# Feito so com python3 (zipfile + urllib) em vez de curl/unzip: a imagem
+# base nao garante curl, e python3 ja e requisito de todo o build.
 RUN mkdir -p /comfyui/models/insightface/models/antelopev2 \
- && curl -fsSL "https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip" \
-      -o /tmp/antelopev2.zip \
- && (command -v unzip >/dev/null 2>&1 \
-     && unzip -q -o /tmp/antelopev2.zip -d /comfyui/models/insightface/models/antelopev2 \
-     || python3 -c "import zipfile;zipfile.ZipFile('/tmp/antelopev2.zip').extractall('/comfyui/models/insightface/models/antelopev2')") \
+ && python3 -c "\
+import urllib.request, zipfile;\
+u='https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip';\
+p='/tmp/antelopev2.zip';\
+urllib.request.urlretrieve(u, p);\
+zipfile.ZipFile(p).extractall('/comfyui/models/insightface/models/antelopev2');\
+print('antelopev2 extraido')" \
  && rm -f /tmp/antelopev2.zip \
  && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx
 
@@ -114,7 +119,9 @@ RUN python3 /tmp/instalar_pulid.py && rm /tmp/instalar_pulid.py \
  && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip
 
 # O RunPod GitHub integration exige src/handler.py e src/start.sh.
-COPY requirements.txt ./
+# O requirements.txt NAO e instalado aqui: runpod, websocket-client e
+# requests ja vem na imagem base, e instalar de novo arrisca conflito
+# de versao. O handler original era copiado daqui.
 COPY src/handler.py src/start.sh src/network_volume.py /
 
 # ------------------------------------------------------------------
@@ -129,19 +136,30 @@ COPY src/handler.py src/start.sh src/network_volume.py /
 # Qualquer alteracao nas linhas acima invalidaria o cache e faria os
 # 19,5 GB do try-on baixarem de novo.
 # ------------------------------------------------------------------
-ARG BUILD_TAG=pulid-v1
+ARG BUILD_TAG=pulid-v2
 ENV FLOR_DE_SEDA_BUILD=$BUILD_TAG
 
-# Marcador de heartbeat: valor novo aqui invalida apenas o cache deste
-# estagio final. Serve para forcar um build novo quando o anterior ficou
-# pendente, sem rebaixar os 19,5 GB do stage "models".
-ARG HEARTBEAT=1
-
 RUN echo "$BUILD_TAG" > /comfyui/BUILD_TAG \
- && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\n' \
+ && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\nantelopev2=ok\n' \
       "$BUILD_TAG" > /comfyui/BUILD_INFO
 
-HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
+# ------------------------------------------------------------------
+# HEALTHCHECK
+#
+# NAO pode importar nada de Python aqui. 'import insightface' carrega
+# onnxruntime + opencv + scipy + scikit-image + numpy: 10-30 s, e com
+# --timeout estouraria, marcando o container unhealthy e fazendo o
+# RunPod reiniciar em laco (sintoma: worker oscila entre initializing e
+# throttled e o job fica IN_QUEUE para sempre).
+#
+# A verificacao pesada de import fica em instalar_pulid.py, no build: se
+# o modulo nao carregar, o build QUEBRA -- que e o lugar certo para
+# falhar, e nao no boot de todo worker.
+#
+# Aqui sao so checagens de arquivo (rapidas) mais o processo do ComfyUI.
+# start-period generoso: a imagem tem 36 GB e o boot demora.
+# ------------------------------------------------------------------
+HEALTHCHECK --interval=60s --timeout=20s --start-period=300s --retries=3 \
   CMD test -s /comfyui/models/diffusion_models/krea2_turbo_fp8_scaled.safetensors \
    && test -s /comfyui/models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors \
    && test -s /comfyui/models/vae/qwen_image_vae.safetensors \
@@ -150,6 +168,6 @@ HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
    && test -s /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
    && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip \
    && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx \
-   && python3 -c "import insightface, facexlib" \
    && test -s /comfyui/BUILD_TAG \
-   && echo "krea2 + gerador de ancoras pronto ($(cat /comfyui/BUILD_TAG))" || exit 1
+   && pgrep -f "comfyui/main.py" > /dev/null \
+   && echo "pronto ($(cat /comfyui/BUILD_TAG))" || exit 1
