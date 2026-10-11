@@ -142,41 +142,67 @@ def instalar_dependencias():
 
 def testar_import_real(destino: str):
     """
-    Importa o pacote de verdade e confere se os nos entram no mapa.
+    Verifica o que da para checar SEM GPU.
 
-    Este e o teste que pega a falha do insightface: a checagem por texto
-    passaria, mas o import levanta ImportError.
+    Por que nao importar o pacote inteiro: pulidflux.py faz, na linha 10,
+
+        from comfy.ldm.flux.layers import timestep_embedding
+
+    que puxa comfy.ldm.flux.layers -> math -> attention -> comfy.model_management.
+    E o model_management do ComfyUI executa no TOPO do modulo (linha 363):
+
+        total_vram = get_total_memory(get_torch_device())
+
+    que chama torch.cuda.current_device(). Na maquina de build do RunPod
+    nao ha GPU, entao o import morre com:
+
+        RuntimeError: Found no NVIDIA driver on your system
+
+    Isso NAO e um problema do no: em runtime, no worker, ha GPU e o mesmo
+    import funciona. O que quebrou foi o teste de build (13:40), nao a
+    imagem.
+
+    O que este teste faz, sem tocar em CUDA:
+      1. importa as dependencias que o modulo usa no topo (insightface,
+         facexlib) -- de verdade, e elas nao tocam em GPU;
+      2. compila pulidflux.py com ast, o que pega erro de sintaxe sem
+         executar nada;
+      3. le NODE_CLASS_MAPPINGS por texto e confere os 4 nomes.
     """
-    # O diretorio tem hifen ("ComfyUI-PuLID-Flux"), que nao serve como
-    # identificador de modulo. Por isso o import e feito pelo caminho do
-    # arquivo, usando o mesmo mecanismo que o ComfyUI usa ao carregar
-    # custom_nodes.
     teste = (
-        "import importlib.util, sys\n"
-        f"caminho = {os.path.join(destino, '__init__.py')!r}\n"
-        "spec = importlib.util.spec_from_file_location('pulid_flux_probe', caminho,\n"
-        "                                               submodule_search_locations=[%r])\n"
-        "mod = importlib.util.module_from_spec(spec)\n"
-        "sys.modules['pulid_flux_probe'] = mod\n"
-        "spec.loader.exec_module(mod)\n"
-        "mapa = getattr(mod, 'NODE_CLASS_MAPPINGS', {}) or {}\n"
-        "faltando = [n for n in %r if n not in mapa]\n"
-        "print('NOS:', sorted(mapa))\n"
-        "if faltando:\n"
-        "    print('FALTANDO:', faltando)\n"
-        "    sys.exit(3)\n"
-        # A API que pulidflux.py usa no topo do modulo. Se o insightface
-        # instalado nao expoe FaceAnalysis, o import do pacote ja teria
-        # estourado acima -- mas a checagem explicita deixa o motivo claro
-        # no log em vez de um ImportError generico.
+        # 1. dependencias reais, sem CUDA
         "from insightface.app import FaceAnalysis\n"
         "from facexlib.parsing import init_parsing_model\n"
         "from facexlib.utils.face_restoration_helper import FaceRestoreHelper\n"
         "import insightface, facexlib\n"
         "print('INSIGHTFACE', getattr(insightface, '__version__', '?'),\n"
         "      '| FACEXLIB', getattr(facexlib, '__version__', '?'))\n"
+        # 2. sintaxe do modulo, sem executar
+        "import ast, pathlib\n"
+        "fonte = pathlib.Path(%r) / 'pulidflux.py'\n"
+        "arvore = ast.parse(fonte.read_text(encoding='utf-8'))\n"
+        "print('SINTAXE OK:', fonte.name)\n"
+        # 3. os 4 nos no NODE_CLASS_MAPPINGS. As CHAVES do dict sao os nomes
+        # dos nos; os VALORES sao referencias a classes (ast.Name), entao
+        # literal_eval nao serve. Extrai-se so a chave.
+        "nomes = set()\n"
+        "for no in ast.walk(arvore):\n"
+        "    if not isinstance(no, ast.Assign):\n"
+        "        continue\n"
+        "    if not any(getattr(t, 'id', '') == 'NODE_CLASS_MAPPINGS' for t in no.targets):\n"
+        "        continue\n"
+        "    if isinstance(no.value, ast.Dict):\n"
+        "        for chave in no.value.keys:\n"
+        "            if isinstance(chave, ast.Constant) and isinstance(chave.value, str):\n"
+        "                nomes.add(chave.value)\n"
+        "print('NOS:', sorted(nomes))\n"
+        "faltando = [n for n in %r if n not in nomes]\n"
+        "if faltando:\n"
+        "    print('FALTANDO:', faltando)\n"
+        "    sys.exit(3)\n"
         "print('IMPORT_OK')\n" % (destino, NOS_ESPERADOS)
     )
+    teste = "import sys\n" + teste
     proc = subprocess.run([sys.executable, "-c", teste],
                           capture_output=True, text=True, cwd="/comfyui")
     saida = (proc.stdout or "") + (proc.stderr or "")
