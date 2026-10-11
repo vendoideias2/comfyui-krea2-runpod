@@ -91,15 +91,6 @@ COPY scripts/instalar_krea2edit.py /tmp/instalar_krea2edit.py
 RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
  && test -f /comfyui/custom_nodes/comfyui-krea2edit/__init__.py
 
-# ---- compilador C++ ----
-# insightface 0.7.3 so publica SDIST e compila uma extensao Cython. Sem
-# g++ o build morre em ~67s com:
-#   error: [Errno 2] No such file or directory: 'x86_64-linux-gnu-g++'
-# Camada propria: fica isolada para o cache e nao toca no stage models.
-RUN apt-get update \
- && apt-get install -y --no-install-recommends g++ \
- && rm -rf /var/lib/apt/lists/*
-
 # ---- modelo de analise facial (antelopev2) ----
 # pulidflux.py carrega FaceAnalysis(name="antelopev2"), que BAIXA do
 # GitHub no primeiro uso. Baixar no build em vez do job: se a URL cair,

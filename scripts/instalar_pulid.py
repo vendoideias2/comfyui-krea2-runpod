@@ -57,18 +57,23 @@ import zipfile
 URL = "https://huggingface.co/snailmana99/comfyui-pulid-flux/resolve/main/ComfyUI-PuLID-Flux.zip"
 DESTINO = "/comfyui/custom_nodes/ComfyUI-PuLID-Flux"
 
-# insightface so publica SDIST (0.7.3.tar.gz) e compila uma extensao
-# Cython. Sem compilador na imagem o build morre em ~67s com:
-#     error: [Errno 2] No such file or directory: 'x86_64-linux-gnu-g++'
-# O Dockerfile instala g++ antes de rodar este script.
+# insightface e a unica dependencia que deu problema.
 #
-# onnxruntime NAO e pinado de proposito: a imagem worker-comfyui ja traz
-# uma versao e fixar 1.19.2 forçaria reinstalacao, podendo conflito com a
-# build GPU. O proprio insightface declara a dependencia, entao o pip
-# resolve. gfpgan tambem foi removido: facexlib so precisa de
-# basicsr/filterpy, que constroem sem compilador.
+# O 0.7.3 (abr/2023, usado nas tentativas anteriores) so publica SDIST e
+# compila mesh_core_cython. Sem compilador o build morre em ~67s com
+#     error: [Errno 2] No such file or directory: 'x86_64-linux-gnu-g++'
+#
+# A partir da 1.0 o insightface publica wheel universal py3-none-any, e o
+# cython virou EXTRA OPCIONAL de face3d -- ou seja, a instalacao base nao
+# compila nada. A 2.1 (out/2026) exige python>=3.10, compativel com o 3.12
+# da imagem.
+#
+# Nao pinamos onnxruntime: a imagem worker-comfyui ja traz uma versao e
+# fixar forcaria reinstall, com risco de conflito com a build GPU. O proprio
+# insightface declara a dependencia e o pip resolve. gfpgan fora: facexlib
+# so usa basicsr/filterpy, que constroem em python puro.
 DEPENDENCIAS = (
-    "insightface==0.7.3",
+    "insightface==2.1",
     "facexlib==0.3.0",
 )
 
@@ -124,6 +129,16 @@ def testar_import_real(destino: str):
         "if faltando:\n"
         "    print('FALTANDO:', faltando)\n"
         "    sys.exit(3)\n"
+        # A API que pulidflux.py usa no topo do modulo. Se o insightface
+        # instalado nao expoe FaceAnalysis, o import do pacote ja teria
+        # estourado acima -- mas a checagem explicita deixa o motivo claro
+        # no log em vez de um ImportError generico.
+        "from insightface.app import FaceAnalysis\n"
+        "from facexlib.parsing import init_parsing_model\n"
+        "from facexlib.utils.face_restoration_helper import FaceRestoreHelper\n"
+        "import insightface, facexlib\n"
+        "print('INSIGHTFACE', getattr(insightface, '__version__', '?'),\n"
+        "      '| FACEXLIB', getattr(facexlib, '__version__', '?'))\n"
         "print('IMPORT_OK')\n" % (destino, NOS_ESPERADOS)
     )
     proc = subprocess.run([sys.executable, "-c", teste],
