@@ -5,48 +5,33 @@
         "unet_name": "krea2_turbo_fp8_scaled.safetensors",
         "weight_dtype": "fp8_e4m3fn"
       },
-      "class_type": "UNETLoader",
-      "_meta": {
-        "title": "1. Carregar Modelo Krea 2 Turbo"
-      }
+      "class_type": "UNETLoader"
     },
     "2": {
       "inputs": {
         "clip_name": "qwen3vl_4b_bf16.safetensors",
         "type": "qwen2vl"
       },
-      "class_type": "CLIPLoader",
-      "_meta": {
-        "title": "2. Carregar Text Encoder Qwen3-VL 4B"
-      }
+      "class_type": "CLIPLoader"
     },
     "3": {
       "inputs": {
         "vae_name": "qwen_image_vae.safetensors"
       },
-      "class_type": "VAELoader",
-      "_meta": {
-        "title": "3. Carregar Qwen Image VAE"
-      }
+      "class_type": "VAELoader"
     },
     "10": {
       "inputs": {
         "image": "mariana_rosto_ref.png",
         "upload": "image"
       },
-      "class_type": "LoadImage",
-      "_meta": {
-        "title": "10. Foto Facial de Referência Oficial (Face Lock)"
-      }
+      "class_type": "LoadImage"
     },
     "11": {
       "inputs": {
         "pulid_file": "pulid_flux_v0.9.1.safetensors"
       },
-      "class_type": "PulidFluxModelLoader",
-      "_meta": {
-        "title": "11. Carregar Modelo PuLID Face Lock"
-      }
+      "class_type": "PulidFluxModelLoader"
     },
     "12": {
       "inputs": {
@@ -74,10 +59,7 @@
         "start_at": 0.0,
         "end_at": 1.0
       },
-      "class_type": "ApplyPulidFlux",
-      "_meta": {
-        "title": "12. Trava Facial Absoluta (Congela Identidade)"
-      }
+      "class_type": "ApplyPulidFlux"
     },
     "12eva": {
       "class_type": "PulidFluxEvaClipLoader",
@@ -97,10 +79,7 @@
           0
         ]
       },
-      "class_type": "CLIPTextEncode",
-      "_meta": {
-        "title": "30. Prompt Positivo (Âncora & Provador)"
-      }
+      "class_type": "CLIPTextEncode"
     },
     "31": {
       "inputs": {
@@ -110,10 +89,7 @@
           0
         ]
       },
-      "class_type": "CLIPTextEncode",
-      "_meta": {
-        "title": "31. Prompt Negativo (Anti-IA & Anti-Distorção)"
-      }
+      "class_type": "CLIPTextEncode"
     },
     "40": {
       "inputs": {
@@ -121,10 +97,7 @@
         "height": 1280,
         "batch_size": 1
       },
-      "class_type": "EmptyLatentImage",
-      "_meta": {
-        "title": "40. Resolução Base 3:4 (896x1280)"
-      }
+      "class_type": "EmptyLatentImage"
     },
     "50": {
       "class_type": "KSampler",
@@ -151,9 +124,6 @@
           "40",
           0
         ]
-      },
-      "_meta": {
-        "title": "50. Amostrador (KSampler nativo)"
       }
     },
     "60": {
@@ -167,10 +137,7 @@
           0
         ]
       },
-      "class_type": "VAEDecode",
-      "_meta": {
-        "title": "60. Decodificar VAE em Alta Resolução"
-      }
+      "class_type": "VAEDecode"
     },
     "70": {
       "inputs": {
@@ -180,10 +147,7 @@
           0
         ]
       },
-      "class_type": "SaveImage",
-      "_meta": {
-        "title": "70. Salvar Nova Âncora Oficial"
-      }
+      "class_type": "SaveImage"
     }
   }
 }
