@@ -57,14 +57,19 @@ import zipfile
 URL = "https://huggingface.co/snailmana99/comfyui-pulid-flux/resolve/main/ComfyUI-PuLID-Flux.zip"
 DESTINO = "/comfyui/custom_nodes/ComfyUI-PuLID-Flux"
 
-# insightface compilaonnxruntime-gpu em tempo de build, o que estoura o teto
-# de 30 min do RunPod. A variante -onnxruntime (CPU) e pre-compilada e basta
-# para o face_analysis do PuLID, que roda em pixels pequenos.
+# insightface so publica SDIST (0.7.3.tar.gz) e compila uma extensao
+# Cython. Sem compilador na imagem o build morre em ~67s com:
+#     error: [Errno 2] No such file or directory: 'x86_64-linux-gnu-g++'
+# O Dockerfile instala g++ antes de rodar este script.
+#
+# onnxruntime NAO e pinado de proposito: a imagem worker-comfyui ja traz
+# uma versao e fixar 1.19.2 forçaria reinstalacao, podendo conflito com a
+# build GPU. O proprio insightface declara a dependencia, entao o pip
+# resolve. gfpgan tambem foi removido: facexlib so precisa de
+# basicsr/filterpy, que constroem sem compilador.
 DEPENDENCIAS = (
-    "facexlib==0.3.0",
     "insightface==0.7.3",
-    "onnxruntime==1.19.2",
-    "gfpgan==1.3.8",
+    "facexlib==0.3.0",
 )
 
 # Nomes que o gerador de ancoras usa no workflow. Se algum faltar, a

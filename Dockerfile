@@ -91,6 +91,28 @@ COPY scripts/instalar_krea2edit.py /tmp/instalar_krea2edit.py
 RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
  && test -f /comfyui/custom_nodes/comfyui-krea2edit/__init__.py
 
+# ---- compilador C++ ----
+# insightface 0.7.3 so publica SDIST e compila uma extensao Cython. Sem
+# g++ o build morre em ~67s com:
+#   error: [Errno 2] No such file or directory: 'x86_64-linux-gnu-g++'
+# Camada propria: fica isolada para o cache e nao toca no stage models.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends g++ \
+ && rm -rf /var/lib/apt/lists/*
+
+# ---- modelo de analise facial (antelopev2) ----
+# pulidflux.py carrega FaceAnalysis(name="antelopev2"), que BAIXA do
+# GitHub no primeiro uso. Baixar no build em vez do job: se a URL cair,
+# o build quebra aqui (barato) e nao no meio de um job de geracao.
+RUN mkdir -p /comfyui/models/insightface/models/antelopev2 \
+ && curl -fsSL "https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip" \
+      -o /tmp/antelopev2.zip \
+ && (command -v unzip >/dev/null 2>&1 \
+     && unzip -q -o /tmp/antelopev2.zip -d /comfyui/models/insightface/models/antelopev2 \
+     || python3 -c "import zipfile;zipfile.ZipFile('/tmp/antelopev2.zip').extractall('/comfyui/models/insightface/models/antelopev2')") \
+ && rm -f /tmp/antelopev2.zip \
+ && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx
+
 # ---- custom node do PuLID (gerador de ancoras) ----
 # Repositorio oficial no GitHub foi removido (404); o mirror esta no HF.
 # O instalador tambem normaliza as barras invertidas do zip, senao o
@@ -136,5 +158,7 @@ HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
    && test -s /comfyui/models/text_encoders/qwen3vl_4b_bf16.safetensors \
    && test -s /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
    && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip \
+   && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx \
+   && python3 -c "import insightface, facexlib" \
    && test -s /comfyui/BUILD_TAG \
    && echo "krea2 + gerador de ancoras pronto ($(cat /comfyui/BUILD_TAG))" || exit 1
