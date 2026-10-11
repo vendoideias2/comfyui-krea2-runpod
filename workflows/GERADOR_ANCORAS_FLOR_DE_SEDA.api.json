@@ -29,66 +29,9 @@
         "title": "3. Carregar Qwen Image VAE"
       }
     },
-    "4": {
-      "inputs": {
-        "lora_name": "fashion_pose_photography_lora.safetensors",
-        "strength_model": 0.7,
-        "strength_clip": 0.7,
-        "model": [
-          "1",
-          0
-        ],
-        "clip": [
-          "2",
-          0
-        ]
-      },
-      "class_type": "LoraLoader",
-      "_meta": {
-        "title": "4. LoRA Pose de Moda & Provador"
-      }
-    },
-    "5": {
-      "inputs": {
-        "lora_name": "krea2_pro_realism_lora.safetensors",
-        "strength_model": 0.6,
-        "strength_clip": 0.6,
-        "model": [
-          "4",
-          0
-        ],
-        "clip": [
-          "4",
-          1
-        ]
-      },
-      "class_type": "LoraLoader",
-      "_meta": {
-        "title": "5. LoRA Realismo Pro (Pele & Iluminação)"
-      }
-    },
-    "6": {
-      "inputs": {
-        "lora_name": "phone_camera_realism_lora.safetensors",
-        "strength_model": 0.5,
-        "strength_clip": 0.5,
-        "model": [
-          "5",
-          0
-        ],
-        "clip": [
-          "5",
-          1
-        ]
-      },
-      "class_type": "LoraLoader",
-      "_meta": {
-        "title": "6. LoRA Câmera Real (iPhone/Ótica Natural)"
-      }
-    },
     "10": {
       "inputs": {
-        "image": "rosto_renata_ancora.jpg",
+        "image": "mariana_rosto_ref.png",
         "upload": "image"
       },
       "class_type": "LoadImage",
@@ -98,7 +41,6 @@
     },
     "11": {
       "inputs": {
-        "provider": "CUDA",
         "pulid_file": "pulid_flux_v0.9.1.safetensors"
       },
       "class_type": "PulidFluxModelLoader",
@@ -108,19 +50,8 @@
     },
     "12": {
       "inputs": {
-        "weight": 0.88,
-        "start_at": 0.0,
-        "end_at": 1.0,
         "model": [
-          "6",
-          0
-        ],
-        "pulid": [
-          "11",
-          0
-        ],
-        "image": [
-          "10",
+          "1",
           0
         ],
         "pulid_flux": [
@@ -134,7 +65,14 @@
         "face_analysis": [
           "12face",
           0
-        ]
+        ],
+        "image": [
+          "10",
+          0
+        ],
+        "weight": 0.88,
+        "start_at": 0.0,
+        "end_at": 1.0
       },
       "class_type": "ApplyPulidFlux",
       "_meta": {
@@ -151,22 +89,12 @@
         "provider": "CUDA"
       }
     },
-    "20": {
-      "inputs": {
-        "image": "provador_vip_vazio.jpg",
-        "upload": "image"
-      },
-      "class_type": "LoadImage",
-      "_meta": {
-        "title": "20. Imagem de Fundo Oficial Provador VIP"
-      }
-    },
     "30": {
       "inputs": {
         "text": "RAW ultra-realistic photograph, full-body shot of a real 40-year-old Brazilian woman standing inside a luxury boutique fitting room. She has natural blonde shoulder-length bob hair, warm smiling friendly expression, athletic toned silhouette, wearing a neutral beige ribbed tank top and black fitted seamless biker shorts, standing naturally in front of a full-length boutique mirror. Soft warm ambient boutique lighting, pink velvet curtains background, authentic skin pores, delicate natural imperfections, real eye reflections, photorealistic depth of field, 8k uhd, shot on iPhone 15 Pro, highly detailed textile.",
         "clip": [
-          "6",
-          1
+          "2",
+          0
         ]
       },
       "class_type": "CLIPTextEncode",
@@ -178,8 +106,8 @@
       "inputs": {
         "text": "cgi, 3d render, plastic skin, doll, anime, airbrushed, cartoon, smooth wax skin, extra fingers, bad anatomy, deformed hands, blurry, overexposed, distorted face, changing identity, generic face",
         "clip": [
-          "6",
-          1
+          "2",
+          0
         ]
       },
       "class_type": "CLIPTextEncode",
@@ -199,13 +127,14 @@
       }
     },
     "50": {
+      "class_type": "KSampler",
       "inputs": {
-        "handoff_percent": 30,
-        "stage1_steps": 6,
-        "stage2_steps": 10,
+        "seed": 99001,
+        "steps": 16,
         "cfg": 3.5,
         "sampler_name": "euler",
         "scheduler": "simple",
+        "denoise": 1.0,
         "model": [
           "12",
           0
@@ -223,9 +152,8 @@
           0
         ]
       },
-      "class_type": "Krea2TwoStageSampler",
       "_meta": {
-        "title": "50. Two-Stage Sampler (Estágio 1 Pose + Estágio 2 Realismo)"
+        "title": "50. Amostrador (KSampler nativo)"
       }
     },
     "60": {
