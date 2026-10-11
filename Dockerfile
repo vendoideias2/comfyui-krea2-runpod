@@ -104,6 +104,25 @@ RUN python3 /tmp/instalar_pulid.py && rm /tmp/instalar_pulid.py \
 COPY requirements.txt ./
 COPY src/handler.py src/start.sh src/network_volume.py /
 
+# ------------------------------------------------------------------
+# MARCADOR DE BUILD
+#
+# MOTIVO: ja houve confusao sobre qual imagem estava no endpoint. O
+# "disponivel em loras: ..." no erro de validacao do ComfyUI permite ler
+# esta string de fora, sem console e sem deploy. Basta pedir um lora
+# inexistente e ler a lista que o worker devolve.
+#
+# ATENCAO: esta camada vem DEPOIS do COPY --from=models de proposito.
+# Qualquer alteracao nas linhas acima invalidaria o cache e faria os
+# 19,5 GB do try-on baixarem de novo.
+# ------------------------------------------------------------------
+ARG BUILD_TAG=pulid-v1
+ENV FLOR_DE_SEDA_BUILD=$BUILD_TAG
+
+RUN echo "$BUILD_TAG" > /comfyui/BUILD_TAG \
+ && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\n' \
+      "$BUILD_TAG" > /comfyui/BUILD_INFO
+
 HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
   CMD test -s /comfyui/models/diffusion_models/krea2_turbo_fp8_scaled.safetensors \
    && test -s /comfyui/models/text_encoders/qwen3vl_4b_fp8_scaled.safetensors \
@@ -112,4 +131,5 @@ HEALTHCHECK --interval=60s --timeout=25s --start-period=90s --retries=5 \
    && test -s /comfyui/models/text_encoders/qwen3vl_4b_bf16.safetensors \
    && test -s /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
    && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip \
-   && echo "krea2 + gerador de ancoras pronto" || exit 1
+   && test -s /comfyui/BUILD_TAG \
+   && echo "krea2 + gerador de ancoras pronto ($(cat /comfyui/BUILD_TAG))" || exit 1
