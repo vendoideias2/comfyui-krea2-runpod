@@ -119,6 +119,11 @@ COPY src/handler.py src/start.sh src/network_volume.py /
 ARG BUILD_TAG=pulid-v1
 ENV FLOR_DE_SEDA_BUILD=$BUILD_TAG
 
+# Marcador de heartbeat: valor novo aqui invalida apenas o cache deste
+# estagio final. Serve para forcar um build novo quando o anterior ficou
+# pendente, sem rebaixar os 19,5 GB do stage "models".
+ARG HEARTBEAT=1
+
 RUN echo "$BUILD_TAG" > /comfyui/BUILD_TAG \
  && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\n' \
       "$BUILD_TAG" > /comfyui/BUILD_INFO
