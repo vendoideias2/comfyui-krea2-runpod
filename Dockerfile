@@ -96,18 +96,34 @@ RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
 # GitHub no primeiro uso. Baixar no build em vez do job: se a URL cair,
 # o build quebra aqui (barato) e nao no meio de um job de geracao.
 #
-# Feito so com python3 (zipfile + urllib) em vez de curl/unzip: a imagem
-# base nao garante curl, e python3 ja e requisito de todo o build.
-RUN mkdir -p /comfyui/models/insightface/models \
- && python3 -c "\
-import urllib.request, zipfile;\
-u='https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip';\
-p='/tmp/antelopev2.zip';\
-urllib.request.urlretrieve(u, p);\
-zipfile.ZipFile(p).extractall('/comfyui/models/insightface/models');\
-print('antelopev2 extraido')" \
- && rm -f /tmp/antelopev2.zip \
- && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx
+# Origem: HuggingFace, nao o release do GitHub. O build de 13:26 morreu com
+# "HTTP Error 502: Bad Gateway" na urlretrieve contra github.com -- o HF ja
+# serviu os outros 19,5 GB deste build sem uma falha. Os 5 arquivos foram
+# conferidos byte a byte contra o zip do GitHub (mesmo tamanho, download de
+# 360.662.982 bytes).
+#
+# Sem zip e sem subpasta: figo711/antelopev2 expoe os .onnx na raiz, então
+# cada arquivo vai direto para antelopev2/ -- o caminho que o insightface
+# procura em <root>/models/antelopev2/.
+#
+# Download em paralelo (como o resto) + 3 tentativas por arquivo: 502 de
+# CDN e intermitente e nao deve custar um build.
+RUN set -eux; \
+    HF=https://huggingface.co/figo711/antelopev2/resolve/main; \
+    mkdir -p /comfyui/models/insightface/models/antelopev2; \
+    cd /comfyui/models/insightface/models/antelopev2; \
+    wget -q -c -O glintr100.onnx       $HF/glintr100.onnx & \
+    wget -q -c -O 1k3d68.onnx          $HF/1k3d68.onnx & \
+    wget -q -c -O scrfd_10g_bnkps.onnx $HF/scrfd_10g_bnkps.onnx & \
+    wget -q -c -O 2d106det.onnx        $HF/2d106det.onnx & \
+    wget -q -c -O genderage.onnx       $HF/genderage.onnx & \
+    wait; \
+    du -sh .; \
+    test -s glintr100.onnx; \
+    test -s 1k3d68.onnx; \
+    test -s scrfd_10g_bnkps.onnx; \
+    test -s 2d106det.onnx; \
+    test -s genderage.onnx
 
 # ---- custom node do PuLID (gerador de ancoras) ----
 # Repositorio oficial no GitHub foi removido (404); o mirror esta no HF.
