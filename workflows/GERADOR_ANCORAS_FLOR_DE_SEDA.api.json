@@ -3,14 +3,15 @@
     "1": {
       "inputs": {
         "unet_name": "krea2_turbo_fp8_scaled.safetensors",
-        "weight_dtype": "fp8_e4m3fn"
+        "weight_dtype": "default"
       },
       "class_type": "UNETLoader"
     },
     "2": {
       "inputs": {
-        "clip_name": "qwen3vl_4b_bf16.safetensors",
-        "type": "qwen2vl"
+        "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+        "type": "krea2",
+        "device": "default"
       },
       "class_type": "CLIPLoader"
     },
@@ -22,76 +23,24 @@
     },
     "10": {
       "inputs": {
-        "image": "mariana_rosto_ref.png",
-        "upload": "image"
+        "text": "",
+        "clip": [
+          "2",
+          0
+        ]
       },
-      "class_type": "LoadImage"
+      "class_type": "CLIPTextEncode"
     },
     "11": {
       "inputs": {
-        "pulid_file": "pulid_flux_v0.9.1.safetensors"
-      },
-      "class_type": "PulidFluxModelLoader"
-    },
-    "12": {
-      "inputs": {
-        "model": [
-          "1",
-          0
-        ],
-        "pulid_flux": [
-          "11",
-          0
-        ],
-        "eva_clip": [
-          "12eva",
-          0
-        ],
-        "face_analysis": [
-          "12face",
-          0
-        ],
-        "image": [
+        "conditioning": [
           "10",
           0
-        ],
-        "weight": 0.88,
-        "start_at": 0.0,
-        "end_at": 1.0
-      },
-      "class_type": "ApplyPulidFlux"
-    },
-    "12eva": {
-      "class_type": "PulidFluxEvaClipLoader",
-      "inputs": {}
-    },
-    "12face": {
-      "class_type": "PulidFluxInsightFaceLoader",
-      "inputs": {
-        "provider": "CUDA"
-      }
-    },
-    "30": {
-      "inputs": {
-        "text": "RAW ultra-realistic photograph, full-body shot of a real 40-year-old Brazilian woman standing inside a luxury boutique fitting room. She has natural blonde shoulder-length bob hair, warm smiling friendly expression, athletic toned silhouette, wearing a neutral beige ribbed tank top and black fitted seamless biker shorts, standing naturally in front of a full-length boutique mirror. Soft warm ambient boutique lighting, pink velvet curtains background, authentic skin pores, delicate natural imperfections, real eye reflections, photorealistic depth of field, 8k uhd, shot on iPhone 15 Pro, highly detailed textile.",
-        "clip": [
-          "2",
-          0
         ]
       },
-      "class_type": "CLIPTextEncode"
+      "class_type": "ConditioningZeroOut"
     },
-    "31": {
-      "inputs": {
-        "text": "cgi, 3d render, plastic skin, doll, anime, airbrushed, cartoon, smooth wax skin, extra fingers, bad anatomy, deformed hands, blurry, overexposed, distorted face, changing identity, generic face",
-        "clip": [
-          "2",
-          0
-        ]
-      },
-      "class_type": "CLIPTextEncode"
-    },
-    "40": {
+    "20": {
       "inputs": {
         "width": 896,
         "height": 1280,
@@ -99,37 +48,37 @@
       },
       "class_type": "EmptyLatentImage"
     },
-    "50": {
-      "class_type": "KSampler",
+    "30": {
       "inputs": {
-        "seed": 99001,
-        "steps": 16,
-        "cfg": 3.5,
+        "seed": 77001,
+        "steps": 8,
+        "cfg": 1.0,
         "sampler_name": "euler",
         "scheduler": "simple",
         "denoise": 1.0,
         "model": [
-          "12",
+          "1",
           0
         ],
         "positive": [
-          "30",
+          "10",
           0
         ],
         "negative": [
-          "31",
+          "11",
           0
         ],
         "latent_image": [
-          "40",
+          "20",
           0
         ]
-      }
+      },
+      "class_type": "KSampler"
     },
-    "60": {
+    "40": {
       "inputs": {
         "samples": [
-          "50",
+          "30",
           0
         ],
         "vae": [
@@ -139,11 +88,11 @@
       },
       "class_type": "VAEDecode"
     },
-    "70": {
+    "50": {
       "inputs": {
-        "filename_prefix": "ancora_renata_boutique_krea2",
+        "filename_prefix": "ancora_flordeseda_krea2",
         "images": [
-          "60",
+          "40",
           0
         ]
       },

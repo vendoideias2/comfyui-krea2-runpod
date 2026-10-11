@@ -155,10 +155,10 @@ Ordem de caption: *framing → câmera → pose → expressão → cabelo → ro
 
 | Arquivo | Pra quê |
 |---|---|
-| `Krea2_REF_IMAGE_TRYON.json` | 🎯 try-on com imagem (só core) |
-| `Krea2_TwoPass_Refine.json` | 2 passadas + upscale ×1.9 (usa KJNodes) |
-| `Krea2_TwoStage_HiRes.json` | 2 stages + upscale de latent |
-| `Krea2_Simple_Fine.json` | refino simples (usa 5 packs custom) |
+| `GERADOR_ANCORAS_FLOR_DE_SEDA.api.json` | 💎 Gerador de Âncoras T2I Krea 2 nativo (CFG 1.0, 8 steps, ConditioningZeroOut) |
+| `F - 11 - P02 - Character Create_Krea-2-Turbo_T2I.json` | 👤 Template da comunidade para criação consistente de modelos |
+| `KREA2_TRYON_FLOR_DE_SEDA.json` | 🎯 Try-on oficial Flor de Seda (vestir modelo com a peça) |
+| `Krea2_REF_IMAGE_TRYON.json` | 👗 Try-on com imagem de referência |
 
 ---
 

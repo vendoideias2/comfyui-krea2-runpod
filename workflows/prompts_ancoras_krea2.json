@@ -1,0 +1,47 @@
+{
+  "cenario_padrao": "Luxury boutique VIP fitting room in Flor de Seda store. She stands naturally in front of a tall arched brass-framed full-length mirror. Warm 3000K boutique studio lighting, soft diffused shadows, vertical light oak slat wall panel, elegant sheer cream linen curtains, ivory bouclé ottoman in blurred background. Candid authentic mirror perspective, photorealistic depth of field, 8k uhd, shot on iPhone 15 Pro.",
+  "roupa_neutra_ancora": "wearing a plain neutral beige ribbed seamless tank top and black high-waisted seamless biker shorts, barefoot, natural comfortable posture, perfectly clean baseline look ready for outfit try-on",
+  "negativo_universal": "ConditioningZeroOut active in workflow (zero negative noise distortion)",
+  "modelos": {
+    "camila": {
+      "nome": "Camila",
+      "idade": 30,
+      "biotipo": "Curvy (Manequim 42-44)",
+      "seed": 42001,
+      "prompt": "RAW ultra-realistic full-body mirror reflection portrait of a beautiful 30-year-old Brazilian woman named Camila, standing inside a luxury boutique fitting room. She has a natural curvy hourglass silhouette (mannequin 42-44, 168cm tall) with healthy soft curves, full bust, defined waist, wide feminine hips, and toned legs. HAIR: voluminous long natural 3A/3B defined curly hair, warm chestnut brown with subtle sun-kissed honey highlights cascading over her shoulders. FACE: radiant warm golden-tan skin tone, subtle natural freckles on cheeks, expressive sparkling hazel eyes, genuine warm open friendly smile, authentic facial features. OUTFIT: wearing a plain neutral beige ribbed seamless tank top and black high-waisted seamless biker shorts, barefoot, standing naturally with one hand gently resting on hip. ENVIRONMENT: luxury boutique VIP fitting room, full-length arched brass mirror, vertical light oak wood slat wall, sheer cream linen curtains, warm 3000K ambient boutique lighting. Authentic skin pores, delicate natural skin texture, 85mm portrait look, photorealistic, 8k uhd, shot on iPhone 15 Pro.",
+      "saida_arquivo": "ancora_camila_boutique_v2.jpg"
+    },
+    "renata": {
+      "nome": "Renata",
+      "idade": 40,
+      "biotipo": "Atlética (Manequim 38-40)",
+      "seed": 38002,
+      "prompt": "RAW ultra-realistic full-body mirror reflection portrait of an elegant 40-year-old Brazilian woman named Renata, standing inside a luxury boutique fitting room. She has an athletic toned silhouette (mannequin 38-40, 170cm tall) with defined shoulders, visible clavicles, slender waist, and toned athletic legs. HAIR: sleek glossy shoulder-length straight bob (chanel cut), warm honey blonde with subtle golden highlights, clean center part. FACE: fair skin with natural warm undertones, soft authentic smile lines around eyes and mouth, calm confident sophisticated closed-lip gentle smile, intelligent warm amber-green eyes. OUTFIT: wearing a plain neutral sand-beige ribbed seamless tank top and black high-waisted seamless biker shorts, barefoot, standing upright with poised elegant posture. ENVIRONMENT: luxury boutique VIP fitting room, arched brass mirror, vertical oak slat wall, cream curtains, warm 3000K boutique illumination, natural skin texture with visible micro-pores, high-end editorial realism, 8k uhd, shot on iPhone 15 Pro.",
+      "saida_arquivo": "ancora_renata_boutique_v2.jpg"
+    },
+    "valeria": {
+      "nome": "Valéria",
+      "idade": 50,
+      "biotipo": "Madura Sofisticada (Manequim 42-44)",
+      "seed": 50003,
+      "prompt": "RAW ultra-realistic full-body mirror reflection portrait of an aristocratic, distinguished 50-year-old Brazilian woman named Valéria, standing inside a luxury boutique fitting room. She has a statuesque elegant mature silhouette (mannequin 42-44, 167cm tall), graceful dignified posture and proud feminine shoulders. HAIR: chic structured French bob haircut cut just below the jawline, dark chocolate brown hair with soft natural wave and subtle discreet silver strands, effortlessly styled. FACE: authentic graceful mature skin with beautiful delicate fine lines around the eyes, dignified charismatic expression, striking deep dark eyes, subtle refined warm smile. OUTFIT: wearing a plain neutral taupe-beige ribbed seamless tank top and black high-waisted seamless biker shorts, barefoot, standing naturally with poised confidence. ENVIRONMENT: luxury boutique fitting room, arched brass mirror, warm 3000K boutique glow, oak slat background, cream velvet drape, real skin texture, zero airbrushing, 8k, shot on iPhone 15 Pro.",
+      "saida_arquivo": "ancora_valeria_boutique_v2.jpg"
+    },
+    "helena": {
+      "nome": "Helena",
+      "idade": 42,
+      "biotipo": "Plus Size Pleno (Manequim 52-54)",
+      "seed": 54004,
+      "prompt": "RAW ultra-realistic full-body mirror reflection portrait of a voluptuous, imposing 42-year-old Brazilian woman named Helena, standing inside a luxury boutique fitting room. She has an authentic full-figured plus-size silhouette (mannequin 52-54, 172cm tall), generous full bust, wide rounded hips, soft natural waist, and voluptuous feminine proportions. HAIR: long sleek silky dark espresso brown straight hair falling smoothly down past her shoulders, glossy and dense. FACE: warm velvety caramel skin tone, mature radiant beauty of a 42-year-old woman, full pleasant cheeks, kind expressive deep brown eyes, welcoming affectionate smile, commanding yet warm matriarchal presence. OUTFIT: wearing a plain neutral beige ribbed seamless tank top and black plus-size high-waisted seamless biker shorts, barefoot, standing proudly with natural relaxed stance. ENVIRONMENT: luxury boutique VIP fitting room, full-length arched gold mirror, warm 3000K light, vertical oak wood paneling, cream curtains, genuine plus-size anatomy, authentic skin folds and textures, no artificial slimming, 8k uhd, shot on iPhone 15 Pro.",
+      "saida_arquivo": "ancora_helena_boutique_v2.jpg"
+    },
+    "mariana": {
+      "nome": "Mariana",
+      "idade": 35,
+      "biotipo": "Curvilínea Elegante / Plus Size (Manequim 50-52)",
+      "seed": 35005,
+      "prompt": "RAW ultra-realistic full-body mirror reflection portrait of an attractive, curvaceous 35-year-old Brazilian woman named Mariana, standing inside a luxury boutique fitting room. She has a gorgeous feminine plus-size hourglass silhouette in her mid-30s (mannequin 50-52, 175cm tall) with a firm full bust, naturally indented waist, prominent wide hips, and curvy thighs. HAIR: long perfectly straight DARK BLONDE (loiro escuro) hair with warm honey and caramel highlights, sleek and silky, falling straight down to the middle of her back, clean center part. FACE: sun-kissed golden honey complexion with smooth radiant 35-year-old skin, gentle natural smile lines, soft confident closed-lip smile, expressive almond brown eyes, modern fresh aesthetic completely distinct from Helena. OUTFIT: wearing a plain neutral nude-beige ribbed seamless tank top and black high-waisted seamless biker shorts, barefoot, standing comfortably with one hand resting softly on her hip. ENVIRONMENT: luxury boutique VIP fitting room, arched brass mirror, warm 3000K lighting, oak slat wall, sheer cream linen curtains, visible natural pores, authentic skin texture, no retouching, 8k uhd, shot on iPhone 15 Pro.",
+      "saida_arquivo": "ancora_mariana_boutique_v2.jpg"
+    }
+  }
+}
