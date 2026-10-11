@@ -98,13 +98,13 @@ RUN python3 /tmp/instalar_krea2edit.py && rm /tmp/instalar_krea2edit.py \
 #
 # Feito so com python3 (zipfile + urllib) em vez de curl/unzip: a imagem
 # base nao garante curl, e python3 ja e requisito de todo o build.
-RUN mkdir -p /comfyui/models/insightface/models/antelopev2 \
+RUN mkdir -p /comfyui/models/insightface/models \
  && python3 -c "\
 import urllib.request, zipfile;\
 u='https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip';\
 p='/tmp/antelopev2.zip';\
 urllib.request.urlretrieve(u, p);\
-zipfile.ZipFile(p).extractall('/comfyui/models/insightface/models/antelopev2');\
+zipfile.ZipFile(p).extractall('/comfyui/models/insightface/models');\
 print('antelopev2 extraido')" \
  && rm -f /tmp/antelopev2.zip \
  && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx
