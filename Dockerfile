@@ -134,6 +134,33 @@ RUN python3 /tmp/instalar_pulid.py && rm /tmp/instalar_pulid.py \
  && test -f /comfyui/custom_nodes/ComfyUI-PuLID-Flux/__init__.py \
  && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip
 
+# ---- custom node do BiRefNet (recorte de fundo da PECA) ----
+# POR QUE ESTA CAMADA ESTA AQUI E NAO ACIMA
+# Este RUN fica DEPOIS do COPY --from=models de proposito. Qualquer linha
+# acima dele invalidaria o cache e faria os 19,5 GB do try-on mais os 9,4 GB
+# do gerador baixarem de novo — o build deixaria de ser um cache hit e
+# passaria a ser o build completo de meia hora. Aqui so esta camada nova
+# entra: 849 MB do peso mais o pip do timm.
+#
+# POR QUE BiRefNet
+# O Krea2Edit monta a peca junto com o que estiver em volta na foto do
+# grupo: espelho, cabide, moldura, parede. ate o dia 09/out isso era limpo
+# localmente, com rembg, no container da aplicacao. A primeira inferencia do
+# ONNX Runtime travava o pool de threads e matava a peca inteira.
+#
+# Limpar no worker tira o rembg do caminho local e devolve a decisao de
+# imagem para um unico lugar. Alem disso, o recorte por segmentacao neural e
+# melhor para renda, franja e bordado do que o que o modelo de edicao
+# inventaria sozinho a partir do texto.
+#
+# Instalado por script e nao por git clone: a imagem base nao garante git,
+# e o script ainda confere que os nos foram registrados. Detalhe do
+#BiRefNet-ZHO estar em scripts/instalar_birefnet.py.
+COPY scripts/instalar_birefnet.py /tmp/instalar_birefnet.py
+RUN python3 /tmp/instalar_birefnet.py && rm /tmp/instalar_birefnet.py \
+ && test -f /comfyui/custom_nodes/ComfyUI-BiRefNet-ZHO/__init__.py \
+ && test -s /comfyui/models/BiRefNet/BiRefNet-ep480.pth
+
 # O RunPod GitHub integration exige src/handler.py e src/start.sh.
 # O requirements.txt NAO e instalado aqui: runpod, websocket-client e
 # requests ja vem na imagem base, e instalar de novo arrisca conflito
@@ -152,11 +179,11 @@ COPY src/handler.py src/start.sh src/network_volume.py /
 # Qualquer alteracao nas linhas acima invalidaria o cache e faria os
 # 19,5 GB do try-on baixarem de novo.
 # ------------------------------------------------------------------
-ARG BUILD_TAG=pulid-v2
+ARG BUILD_TAG=birefnet-v1
 ENV FLOR_DE_SEDA_BUILD=$BUILD_TAG
 
 RUN echo "$BUILD_TAG" > /comfyui/BUILD_TAG \
- && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\nantelopev2=ok\n' \
+ && printf 'build=%s\nkrea2_turbo=ok\nqwen3vl_fp8=ok\nqwen3vl_bf16=ok\nqwen_image_vae=ok\nidentity_edit=ok\npulid_flux=ok\npulid_node=ok\nantelopev2=ok\nbirefnet_node=ok\nbirefnet_model=ok\n' \
       "$BUILD_TAG" > /comfyui/BUILD_INFO
 
 # ------------------------------------------------------------------
@@ -184,6 +211,8 @@ HEALTHCHECK --interval=60s --timeout=20s --start-period=300s --retries=3 \
    && test -s /comfyui/models/pulid/pulid_flux_v0.9.1.safetensors \
    && test -d /comfyui/custom_nodes/ComfyUI-PuLID-Flux/eva_clip \
    && test -s /comfyui/models/insightface/models/antelopev2/glintr100.onnx \
+   && test -s /comfyui/custom_nodes/ComfyUI-BiRefNet-ZHO/__init__.py \
+   && test -s /comfyui/models/BiRefNet/BiRefNet-ep480.pth \
    && test -s /comfyui/BUILD_TAG \
    && pgrep -f "comfyui/main.py" > /dev/null \
    && echo "pronto ($(cat /comfyui/BUILD_TAG))" || exit 1
