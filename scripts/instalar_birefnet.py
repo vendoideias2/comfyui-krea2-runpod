@@ -35,6 +35,7 @@ backbone inteiro, entao um checkpoint completo basta.
 import io
 import os
 import shutil
+import subprocess
 import sys
 import time
 import urllib.request
@@ -138,6 +139,31 @@ def instala_node():
             raise SystemExit(f"FALHOU: {no} nao registrado")
         log(f"  ok: {no}")
 
+    # Patch de colisao de namespace: dataset.py faz 'from utils import path_to_image'.
+    # No ComfyUI existe /comfyui/utils/__init__.py que ja esta no sys.modules,
+    # fazendo o import falhar com ImportError: cannot import name 'path_to_image' from 'utils'.
+    dataset_file = os.path.join(DESTINO, "dataset.py")
+    if os.path.isfile(dataset_file):
+        ds_content = open(dataset_file, encoding="utf-8").read()
+        patch_code = (
+            "try:\n"
+            "    from utils import path_to_image\n"
+            "except Exception:\n"
+            "    import importlib.util\n"
+            "    _u_path = os.path.join(os.path.dirname(__file__), 'utils.py')\n"
+            "    if os.path.isfile(_u_path):\n"
+            "        _spec = importlib.util.spec_from_file_location('birefnet_local_utils', _u_path)\n"
+            "        _mod = importlib.util.module_from_spec(_spec)\n"
+            "        _spec.loader.exec_module(_mod)\n"
+            "        path_to_image = getattr(_mod, 'path_to_image', None)\n"
+            "    else:\n"
+            "        path_to_image = None"
+        )
+        if "from utils import path_to_image" in ds_content:
+            ds_content = ds_content.replace("from utils import path_to_image", patch_code)
+            open(dataset_file, "w", encoding="utf-8").write(ds_content)
+            log("  ok: patch aplicado em dataset.py (resolve conflito com /comfyui/utils)")
+
 
 def instala_timm():
     """timm e a unica dependencia e o node nao importa sem ela.
@@ -167,6 +193,26 @@ def instala_peso():
     baixa(f"{HF}/{PESO}", destino, PESO)
 
 
+def testar_import():
+    """Valida o import real do no no ambiente antes de finalizar o build."""
+    teste = (
+        "import sys, os\n"
+        f"sys.path.insert(0, '{DESTINO}')\n"
+        "import birefnet\n"
+        "for no in ('BiRefNet_ModelLoader_Zho', 'BiRefNet_Zho'):\n"
+        "    assert no in birefnet.NODE_CLASS_MAPPINGS, f'no {no} ausente'\n"
+        "print('IMPORT_BIREFNET_OK')\n"
+    )
+    proc = subprocess.run([sys.executable, "-c", teste],
+                          capture_output=True, text=True, cwd="/comfyui")
+    saida = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode != 0 or "IMPORT_BIREFNET_OK" not in saida:
+        raise SystemExit(
+            f"FALHOU: import de teste do BiRefNet falhou:\n{saida[-2000:]}"
+        )
+    log("  ok: teste de import passou sem erros")
+
+
 def main():
     if os.environ.get("BIREFNET_PULAR") == "1":
         log("BIREFNET_PULAR=1 — pulando tudo")
@@ -175,6 +221,7 @@ def main():
     instala_node()
     instala_timm()
     instala_peso()
+    testar_import()
     log("BiRefNet pronto")
 
 

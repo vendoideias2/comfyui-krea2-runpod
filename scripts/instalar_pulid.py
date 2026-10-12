@@ -75,6 +75,7 @@ DESTINO = "/comfyui/custom_nodes/ComfyUI-PuLID-Flux"
 DEPENDENCIAS = (
     "insightface==2.1",
     "facexlib==0.3.0",
+    "ftfy",
 )
 
 # Nomes que o gerador de ancoras usa no workflow. Se algum faltar, a
@@ -174,9 +175,10 @@ def testar_import_real(destino: str):
         "from insightface.app import FaceAnalysis\n"
         "from facexlib.parsing import init_parsing_model\n"
         "from facexlib.utils.face_restoration_helper import FaceRestoreHelper\n"
-        "import insightface, facexlib\n"
+        "import insightface, facexlib, ftfy\n"
         "print('INSIGHTFACE', getattr(insightface, '__version__', '?'),\n"
-        "      '| FACEXLIB', getattr(facexlib, '__version__', '?'))\n"
+        "      '| FACEXLIB', getattr(facexlib, '__version__', '?'),\n"
+        "      '| FTFY', getattr(ftfy, '__version__', '?'))\n"
         # 2. sintaxe do modulo, sem executar
         "import ast, pathlib\n"
         "fonte = pathlib.Path(%r) / 'pulidflux.py'\n"
