@@ -164,6 +164,19 @@ def instala_node():
             open(dataset_file, "w", encoding="utf-8").write(ds_content)
             log("  ok: patch aplicado em dataset.py (resolve conflito com /comfyui/utils)")
 
+    # Patch em baseline.py: define pretrained=False para nao exigir o download de
+    # swin_large_patch4_window12_384_22kto1k.pth, ja que BiRefNet-ep480.pth ja contem
+    # 100% dos pesos treinados do backbone.
+    baseline_file = os.path.join(DESTINO, "models", "baseline.py")
+    if os.path.isfile(baseline_file):
+        b_content = open(baseline_file, encoding="utf-8").read()
+        b_content = b_content.replace(
+            "self.bb = build_backbone(self.config.bb, pretrained=True)",
+            "self.bb = build_backbone(self.config.bb, pretrained=False)",
+        )
+        open(baseline_file, "w", encoding="utf-8").write(b_content)
+        log("  ok: patch aplicado em baseline.py (pretrained=False para dispensar swin pth avulso)")
+
 
 def instala_timm():
     """timm e a unica dependencia e o node nao importa sem ela.

@@ -179,7 +179,7 @@ COPY src/handler.py src/start.sh src/network_volume.py /
 # Qualquer alteracao nas linhas acima invalidaria o cache e faria os
 # 19,5 GB do try-on baixarem de novo.
 # ------------------------------------------------------------------
-ARG BUILD_TAG=birefnet-v2
+ARG BUILD_TAG=birefnet-v3
 ENV FLOR_DE_SEDA_BUILD=$BUILD_TAG
 
 RUN echo "$BUILD_TAG" > /comfyui/BUILD_TAG \

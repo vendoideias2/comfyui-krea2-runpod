@@ -79,7 +79,7 @@ def test_o_build_tag_muda():
     """O BUILD_TAG e o unico jeito de ler, de fora, qual imagem esta no
     endpoint: o erro do ComfyUI devolve a lista de loras e o 'disponivel em'
     mostra o prefixo. Sem bump, um diagnostico points to imagem antiga."""
-    assert "ARG BUILD_TAG=birefnet-v2" in DOCKERFILE.read_text(encoding="utf-8")
+    assert "ARG BUILD_TAG=birefnet-v3" in DOCKERFILE.read_text(encoding="utf-8")
 
 
 def test_o_instalador_declara_por_que_usa_pth_e_nao_safetensors():
